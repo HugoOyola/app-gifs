@@ -1,8 +1,16 @@
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+import { SearchResponse, Gif } from '../interfaces/gifs.interfaces';
 
 @Injectable({ providedIn: 'root' })
 export class GifsService {
+  public gifList: Gif[] = []; // Array para almacenar los gifs
+
   private _tagsHistory: string[] = []; // Array para almacenar el historial de tags
+  private apiKey: string = 'IFpKcwNWFbiWSCqRkX6RMJxmHdQILr0Z'; // API Key de Giphy
+  private serviceUrl: string = 'https://api.giphy.com/v1/gifs'; // URL base de la API
+
+  constructor(private http: HttpClient) {}
 
   get tagsHistory(): string[] {
     // Getter para obtener el historial de tags
@@ -24,8 +32,18 @@ export class GifsService {
     if (tag.length === 0) return; // Verifica si el tag está vacío
     this.organizeHistory(tag); // Organiza el historial de tags
 
-    console.log(this.tagsHistory); // Muestra el historial de tags
-  }
+    const params = new HttpParams() // Crea un objeto de parámetros
+      .set('api_key', this.apiKey) // Agrega el API Key
+      .set('limit', '10') // Agrega el límite de resultados
+      .set('q', tag); // Agrega el tag
 
-  constructor() {}
+    // Lógica para buscar un tag
+    this.http
+      .get<SearchResponse>(`${this.serviceUrl}/search`, { params })
+      .subscribe((resp) => {
+        this.gifList = resp.data; // Almacena los gifs en el array
+
+        console.log({ gifs: this.gifList });
+      });
+  }
 }
