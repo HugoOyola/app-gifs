@@ -10,7 +10,10 @@ export class GifsService {
   private apiKey: string = 'IFpKcwNWFbiWSCqRkX6RMJxmHdQILr0Z'; // API Key de Giphy
   private serviceUrl: string = 'https://api.giphy.com/v1/gifs'; // URL base de la API
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) {
+    this.loadLocalStorage(); // Carga el historial de tags desde el LocalStorage
+    console.log('GifsService initialized');
+  }
 
   get tagsHistory(): string[] {
     // Getter para obtener el historial de tags
@@ -26,6 +29,19 @@ export class GifsService {
 
     this._tagsHistory.unshift(tag); // Agrega el tag al principio del array
     this._tagsHistory = this._tagsHistory.splice(0, 10); // Limita el array a 10 elementos
+    this.saveLocalStorage();
+  }
+
+  private saveLocalStorage() {
+    localStorage.setItem('history', JSON.stringify(this._tagsHistory)); // Guarda el historial de tags en el LocalStorage
+  }
+
+  private loadLocalStorage() {
+    if (!localStorage.getItem('history')) return; // Verifica si el historial de tags existe en el LocalStorage
+    this._tagsHistory = JSON.parse(localStorage.getItem('history')!); // Carga el historial de tags desde el LocalStorage
+
+    if (this._tagsHistory.length === 0) return; // Verifica si el historial de tags está vacío
+    this.searchTag(this._tagsHistory[0]); // Realiza una búsqueda con el primer tag del historial
   }
 
   searchTag(tag: string): void {
